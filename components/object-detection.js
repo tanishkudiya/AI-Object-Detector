@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Webcam from "react-webcam";
-import { load as cocoSSDLoad } from "@tensorflow-models/coco-ssd";
+import {load as cocoSSDLoad} from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
-import { renderPredictions } from "@/utils/render-predictions";
+import {renderPredictions} from "@/utils/render-predictions";
 
 let detectInterval;
 
 const ObjectDetection = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [facingMode, setFacingMode] = useState("environment"); // 👈 default back camera
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
   async function runCoco() {
-    setIsLoading(true);
+    setIsLoading(true); // Set loading state to true when model loading starts
     const net = await cocoSSDLoad();
-    setIsLoading(false);
+    setIsLoading(false); // Set loading state to false when model loading completes
 
     detectInterval = setInterval(() => {
-      runObjectDetection(net);
+      runObjectDetection(net); // will build this next
     }, 10);
   }
 
@@ -41,7 +40,7 @@ const ObjectDetection = () => {
         0.6
       );
 
-      console.log(detectedObjects);
+        console.log(detectedObjects);
 
       const context = canvasRef.current.getContext("2d");
       renderPredictions(detectedObjects, context);
@@ -64,19 +63,10 @@ const ObjectDetection = () => {
   useEffect(() => {
     runCoco();
     showmyVideo();
-
-    return () => {
-      clearInterval(detectInterval);
-    };
   }, []);
 
-  // 👇 Toggle camera (front <-> back)
-  const toggleCamera = () => {
-    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
-  };
-
   return (
-    <div className="mt-8 flex flex-col items-center">
+    <div className="mt-8">
       {isLoading ? (
         <div className="gradient-text">Loading AI Model...</div>
       ) : (
@@ -86,27 +76,14 @@ const ObjectDetection = () => {
             ref={webcamRef}
             className="rounded-md w-full lg:h-[720px]"
             muted
-            videoConstraints={{
-              facingMode: facingMode, // 👈 dynamic facing mode
-              width: 1280,
-              height: 720,
-            }}
           />
           {/* canvas */}
           <canvas
             ref={canvasRef}
-            className="absolute top-0 left-0 z-50 w-full lg:h-[720px]"
+            className="absolute top-0 left-0 z-99999 w-full lg:h-[720px]"
           />
         </div>
       )}
-
-      {/* Toggle Camera Button - Only shows on Mobile (hidden on md and larger) */}
-      <button
-        onClick={toggleCamera}
-        className="mt-4 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition block md:hidden"
-      >
-        Switch Camera
-      </button>
     </div>
   );
 };
